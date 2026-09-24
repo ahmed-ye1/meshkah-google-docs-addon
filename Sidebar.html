@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html dir="rtl">
+<head>
+  <base target="_top">
+  <style>
+    input[type="color"] {
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      appearance: none;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      background-color: transparent;
+      padding: 0;
+    }
+    input[type="color"]::-webkit-color-swatch-wrapper { padding: 0; }
+    input[type="color"]::-webkit-color-swatch { border: 1px solid #ccc; border-radius: 50%; }
+    input[type="color"]::-moz-color-swatch { border: 1px solid #ccc; border-radius: 50%; }
+    .color-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    body { font-family: 'Segoe UI', Tahoma, sans-serif; padding: 10px; background: #f9f9f9; color: #333; }
+    h2 { font-size: 16px; border-bottom: 2px solid #4CAF50; padding-bottom: 5px; margin-top: 0;}
+    .btn { display: block; width: 100%; padding: 8px; margin-bottom: 6px; border: none; background-color: #4CAF50; color: white; cursor: pointer; border-radius: 4px; font-size: 13px; }
+    .btn-secondary { background-color: #2196F3; }
+    .btn-outline { background-color: transparent; border: 1px solid #ccc; color: #333; }
+    .btn:hover { opacity: 0.9; }
+    .page { display: none; }
+    .active-page { display: block; }
+    .input-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: bold; }
+    input[type="text"], input[type="number"], input[type="password"], input[type="color"], select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    input[type="checkbox"], input[type="radio"] { width: auto; margin-left: 8px; cursor: pointer; }
+    .row { display: flex; gap: 10px; }
+    .row > div { flex: 1; }
+    .result-card { background: #fff; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 4px; font-size: 13px; white-space: pre-wrap; line-height: 1.6; }
+    #loader { display: none; color: #666; font-size: 12px; text-align: center; margin: 10px 0; font-weight: bold; }
+    #sys-error { display: none; color: white; background: red; padding: 10px; font-size: 12px; margin-bottom: 10px; border-radius: 4px; }
+    .error-msg { color: #d32f2f; font-weight: bold; font-size: 13px; padding: 10px; border: 1px solid #ef9a9a; background: #ffebee; margin-bottom: 10px;}
+    .about-text { font-size: 11px; color: #777; text-align: center; margin-top: 20px; line-height: 1.5; }
+    .filter-toggle { cursor: pointer; font-size: 12px; font-weight: bold; margin-top: 8px; user-select: none; display: flex; align-items: center; }
+    .filter-toggle span { display: inline-block; width: 15px; transition: transform 0.3s ease; font-size: 10px; }
+    .filter-content { display: none; margin-top: 8px; padding-top: 8px; border-top: 1px dashed; }
+  </style>
+</head>
+<body>
+
+  <div id="sys-error"></div>
+  <div id="loader">جاري المعالجة...</div>
+
+  <div id="main-page" class="page active-page">
+    <h2>
+      <img src="https://res.cloudinary.com/dhuob4fz4/image/upload/v1789950614/meshkah_logo_kwavmr.png" alt="شعار" style="width: 50px; height: 50px; vertical-align: middle; margin-left: 5px;">
+      مِشكاة (الباحث الإسلامي)
+    </h2>
+    <button class="btn" onclick="nav('quran-page')">آيات قرآنية</button>
+    <button class="btn" onclick="nav('hadith-page')">أحاديث نبوية</button>
+    <button class="btn" style="background-color: #795548;" onclick="nav('turath-page')">مكتبة تراث (البحث والتوثيق)</button>
+    <button class="btn btn-secondary" onclick="nav('settings-page')">الإعدادات</button>
+    <button class="btn btn-secondary" onclick="nav('about-page')">حول التطبيق</button>
+    <div style="font-size: 11px; color: #888; text-align: center; margin-top: 15px;">الإصدار 1.0.0</div>
+  </div>
+
+  <!-- القرآن الكريم -->
+  <div id="quran-page" class="page">
+    <h2>القرآن الكريم <button class="btn btn-outline" style="padding:2px 5px; width:auto; float:left" onclick="nav('main-page')">عودة</button></h2>
+    
+    <!-- الصندوق الأخضر: البحث النصي للآيات -->
+    <div class="input-group" style="background:#e8f5e9; padding:10px; border-radius:4px; border:1px solid #c8e6c9; margin-bottom: 15px;">
+      <h3 style="margin-top:0; margin-bottom:8px; color:#2e7d32; font-size:14px; border-bottom:1px solid #c8e6c9; padding-bottom:5px;">البحث النصي (بدون تفسير)</h3>
+      
+      <div class="input-group" style="margin-bottom: 8px;">
+        <label>ابحث بنص الآية:</label>
+        <div class="row" style="margin-bottom: 4px;">
+          <input type="text" id="quran-text" placeholder="مثال: يسألونك عن الأهلة" style="border-color: #a5d6a7;">
+          <button class="btn" style="width: 80px; margin-bottom: 0; background-color: #2e7d32;" onclick="searchQuranText()">بحث</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- الصندوق الأزرق: اختيار السورة والآيات والتفسير -->
+    <div class="input-group" style="background:#e3f2fd; padding:10px; border-radius:4px; border:1px solid #bbdefb; margin-bottom: 15px;">
+      <h3 style="margin-top:0; margin-bottom:8px; color:#1565c0; font-size:14px; border-bottom:1px solid #bbdefb; padding-bottom:5px;">إدراج الآيات بتفسيرها</h3>
+      
+      <div class="input-group" style="margin-bottom: 10px;">
+        <label>اختر السورة:</label>
+        <input list="surahs-list" id="surah-select" placeholder="اختر أو ابحث عن السورة..." onchange="updateAyahRange()" style="border-color: #90caf9;">
+        <datalist id="surahs-list"></datalist>
+      </div>
+
+      <div class="row input-group" style="margin-bottom: 10px;">
+        <div><label>من آية:</label><input type="number" id="ayah-from" min="1" value="1" style="border-color: #90caf9;"></div>
+        <div><label>إلى آية:</label><input type="number" id="ayah-to" min="1" value="1" style="border-color: #90caf9;"></div>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 10px;">
+        <label>تفسير الآيات:</label>
+        <select id="tafsir-select" style="border-color: #90caf9;">
+          <option value="none">بدون تفسير</option>
+          <option value="1">التفسير الميسر</option>
+          <option value="2">تفسير الجلالين</option>
+          <option value="saadi">تفسير السعدي</option>
+          <option value="4">تفسير ابن كثير</option>
+          <option value="5">تفسير البغوي</option>
+          <option value="6">تفسير القرطبي</option>
+          <option value="7">تفسير الطبري</option>
+          <option value="sahih-int">اللغة الإنجليزية (Sahih International)</option>
+        </select>
+      </div>
+
+      <!-- فلتر التفسير -->
+      <div class="filter-toggle" onclick="toggleFilter('quran-filters', 'quran-arrow')" style="color: #1565c0; margin-bottom: 8px;">
+        <span id="quran-arrow">▼</span> خيارات التفسير
+      </div>
+      <div id="quran-filters" class="filter-content" style="border-top-color: #90caf9; margin-bottom: 15px;">
+          <label style="font-weight:normal;">
+            <input type="checkbox" id="tafsir-remove-tashkeel"> إزالة التشكيل من نص التفسير
+          </label>
+      </div>
+
+      <button class="btn btn-secondary" style="background-color: #1565c0; border:none; margin-bottom:0;" onclick="fetchQuranRange()">معاينة الآيات</button>
+    </div>
+
+    <!-- مساحة عرض النتائج (مشتركة بين البحثين) -->
+    <div id="quran-results"></div>
+  </div>
+
+  <!-- الأحاديث النبوية -->
+  <div id="hadith-page" class="page">
+    <h2>الأحاديث النبوية <button class="btn btn-outline" style="padding:2px 5px; width:auto; float:left" onclick="nav('main-page')">عودة</button></h2>
+    
+    <!-- القسم الأول: البحث الهيكلي -->
+    <div class="input-group" style="background:#e8f5e9; padding:10px; border-radius:4px; border:1px solid #c8e6c9; margin-bottom: 15px;">
+      <h3 style="margin-top:0; margin-bottom:8px; color:#2e7d32; font-size:14px; border-bottom:1px solid #c8e6c9; padding-bottom:5px;">البحث الهيكلي (كتاب ورقم)</h3>
+      <select id="struct-book" style="margin-bottom: 8px;">
+        <option value="sahih-bukhari">صحيح البخاري</option>
+        <option value="sahih-muslim">صحيح مسلم</option>
+        <option value="al-tirmidhi">جامع الترمذي</option>
+        <option value="abu-dawood">سنن أبي داود</option>
+        <option value="sunan-nasai">سنن النسائي</option>
+        <option value="ibn-e-majah">سنن ابن ماجه</option>
+        <option value="musnad-ahmad">مسند أحمد</option>
+        <option value="mishkat">مشكاة المصابيح</option>
+        <option value="al-silsila-sahiha">السلسلة الصحيحة</option>
+      </select>
+      <div class="row" style="margin-bottom: 4px;">
+        <input type="number" id="struct-num" placeholder="رقم الحديث...">
+        <button class="btn" style="width: 80px; margin-bottom: 0;" onclick="searchStruct()">بحث</button>
+      </div>
+
+      <!-- قائمة الفلترة للبحث الهيكلي (بدون خيار الإنجليزية) -->
+      <div class="filter-toggle" onclick="toggleFilter('struct-filters', 'struct-arrow')" style="color: #2e7d32;">
+        <span id="struct-arrow">▼</span> فلترة البحث
+      </div>
+      <div id="struct-filters" class="filter-content" style="border-top-color: #c8e6c9;">
+        <label style="font-weight:normal; margin-bottom: 4px;">
+          <input type="checkbox" id="struct-remove-sanad" onchange="toggleMatnWarning()"> إدراج المتن فقط (حذف السند)
+        </label>
+        <div id="matn-warning" style="display: none; margin-bottom: 8px; font-size: 11px; color: #d32f2f;">
+          ⚠️ <b>تنبيه:</b> عملية الفصل آلية. يرجى مراجعة النص المظلل.
+        </div>
+        <label style="font-weight:normal;">
+          <input type="checkbox" id="struct-remove-tashkeel" onchange="reRenderResults()"> إزالة التشكيل
+        </label>
+      </div>
+    </div>
+
+    <!-- القسم الثاني: البحث النصي -->
+    <div class="input-group" style="background:#e3f2fd; padding:10px; border-radius:4px; border:1px solid #bbdefb;">
+      <h3 style="margin-top:0; margin-bottom:8px; color:#1565c0; font-size:14px; border-bottom:1px solid #bbdefb; padding-bottom:5px;">البحث النصي (الدرر السنية)</h3>
+      <label style="font-size: 12px; margin-bottom: 5px;">نطاق البحث (اختر كتاباً أو أكثر):</label>
+      <div style="height: 110px; overflow-y: auto; border: 1px solid #ccc; padding: 5px; background: #fff; margin-bottom: 8px; border-radius: 4px; font-weight: normal; font-size:12px;">
+        <label><input type="checkbox" id="text-all-books" checked onchange="toggleAllBooks()"> <strong>جميع الكتب</strong></label><br>
+        <label><input type="checkbox" class="text-book-item" value="صحيح البخاري"> صحيح البخاري</label><br>
+        <label><input type="checkbox" class="text-book-item" value="صحيح مسلم"> صحيح مسلم</label><br>
+        <label><input type="checkbox" class="text-book-item" value="جامع الترمذي"> جامع الترمذي</label><br>
+        <label><input type="checkbox" class="text-book-item" value="سنن أبي داود"> سنن أبي داود</label><br>
+        <label><input type="checkbox" class="text-book-item" value="سنن النسائي"> سنن النسائي</label><br>
+        <label><input type="checkbox" class="text-book-item" value="سنن ابن ماجه"> سنن ابن ماجه</label><br>
+        <label><input type="checkbox" class="text-book-item" value="مسند أحمد"> مسند أحمد</label><br>
+      </div>
+      <div class="row" style="margin-bottom: 4px;">
+        <input type="text" id="text-query" placeholder="اكتب جزءاً من الحديث...">
+        <button class="btn" style="width: 80px; margin-bottom: 0;" onclick="searchText()">بحث</button>
+      </div>
+
+      <!-- قائمة الفلترة للبحث النصي -->
+      <div class="filter-toggle" onclick="toggleFilter('text-filters', 'text-arrow')" style="color: #1565c0;">
+        <span id="text-arrow">▼</span> فلترة البحث
+      </div>
+      <div id="text-filters" class="filter-content" style="border-top-color: #90caf9;">
+        <label style="font-weight:normal; margin-bottom: 8px;">
+          <input type="checkbox" id="text-remove-tashkeel" onchange="reRenderResults()"> إزالة التشكيل
+        </label>
+        <label style="font-weight:normal; margin-bottom: 8px;">
+          <input type="checkbox" id="text-prioritize-sharh" onchange="reRenderResults()"> نتائج الأحاديث المشروحة أولا   
+        </label>
+        <label style="font-weight:normal; margin-bottom: 8px;">
+          <input type="checkbox" id="text-prioritize-english" onchange="reRenderResults()"> نتائج الأحاديث التي لها ترجمة أولاً (الصحيحة)
+        </label>
+
+        <div style="padding-top: 8px; border-top: 1px dashed #90caf9;">
+          <label style="font-weight: bold; color: #1565c0; margin-bottom: 5px; font-size: 12px;">خيارات التخريج:</label>
+          <label style="font-weight:normal; margin-bottom: 4px;">
+            <input type="radio" name="takhreej-opt" value="all" onchange="reRenderResults()"> تجميع كل التخريجات المتاحة
+          </label>
+          <label style="font-weight:normal;">
+            <input type="radio" name="takhreej-opt" value="one" checked onchange="reRenderResults()"> تخريج واحد فقط (الأصح)
+          </label>
+        </div>
+      </div>
+    </div>
+
+    <div id="hadith-results"></div>
+  </div>
+
+  <!-- مكتبة تراث -->
+  <div id="turath-page" class="page">
+    <h2>مكتبة تراث <button class="btn btn-outline" style="padding:2px 5px; width:auto; float:left" onclick="nav('main-page')">عودة</button></h2>
+    
+    <!-- الصندوق الأخضر: البحث المباشر (كتاب / مؤلف) -->
+    <div class="input-group" style="background:#e8f5e9; padding:10px; border-radius:4px; border:1px solid #c8e6c9; margin-bottom: 15px;">
+      <h3 style="margin-top:0; margin-bottom:8px; color:#2e7d32; font-size:14px; border-bottom:1px solid #c8e6c9; padding-bottom:5px;">البحث المرجعي (كتاب / مؤلف)</h3>
+      
+      <div class="input-group" style="margin-bottom: 10px;">
+        <label>طريقة البحث:</label>
+        <select id="turath-search-mode" onchange="switchTurathMode()" style="border-color: #a5d6a7;">
+          <option value="book">بحث عن كتاب مباشرة</option>
+          <option value="author">بحث عن كتب مؤلف</option>
+        </select>
+      </div>
+
+      <div class="input-group" id="author-search-group" style="display: none; margin-bottom: 10px;">
+        <label>اختر المؤلف:</label>
+        <input type="text" list="authors-datalist" id="author-input" placeholder="اكتب اسم المؤلف..." onchange="onAuthorSelected()" style="border-color: #a5d6a7;">
+        <datalist id="authors-datalist"></datalist>
+      </div>
+
+      <div class="input-group" style="margin-bottom: 10px;">
+        <label>اختر الكتاب:</label>
+        <input type="text" list="books-datalist" id="book-input" placeholder="اكتب اسم الكتاب..." onchange="onBookSelected()" style="border-color: #a5d6a7;">
+        <datalist id="books-datalist"></datalist>
+      </div>
+
+      <div class="row input-group" style="margin-bottom: 10px;">
+        <div><label>المجلد (الجزء):</label><input type="number" id="turath-vol" min="1" value="1" style="border-color: #a5d6a7;"></div>
+        <div><label>رقم الصفحة:</label><input type="number" id="turath-pg" min="1" value="1" style="border-color: #a5d6a7;"></div>
+      </div>
+
+      <div class="filter-toggle" onclick="toggleFilter('turath-filters', 'turath-arrow')" style="color: #2e7d32; margin-bottom: 8px;">
+        <span id="turath-arrow">▼</span> خيارات المعاينة والتوثيق
+      </div>
+      <div id="turath-filters" class="filter-content" style="border-top-color: #c8e6c9; margin-bottom: 15px;">
+          <label style="font-weight:normal;">
+            <input type="checkbox" id="turath-remove-tashkeel" onchange="applyTurathTashkeelToggle()"> إزالة التشكيل من النص المستخرج
+          </label>
+      </div>
+
+      <button class="btn" style="background-color: #2e7d32;" onclick="previewTurathPage()">معاينة الصفحة</button>
+      
+      <div id="turath-preview-container" style="display:none; margin-top:15px; border-top: 1px dashed #c8e6c9; padding-top: 10px;">
+        <div style="font-size:12px; font-weight:bold; margin-bottom:5px; color:#2e7d32;">حدد النص المطلوب إدراجه:</div>
+        <textarea id="turath-preview-text" style="width:100%; height:120px; padding:8px; font-size:12px; border:1px solid #a5d6a7; border-radius:4px; box-sizing:border-box; resize:vertical;"></textarea>
+        <button class="btn btn-secondary" style="margin-top:8px; background-color: #2e7d32; border:none;" onclick="insertTurathCitation()">إدراج الإقتباس بتوثيقه</button>
+      </div>
+    </div>
+
+    <!-- الصندوق الأزرق: توثيق نص محدد -->
+    <div class="input-group" style="background:#e3f2fd; padding:10px; border-radius:4px; border:1px solid #bbdefb; margin-bottom: 15px;">
+      <h3 style="margin-top:0; margin-bottom:8px; color:#1565c0; font-size:14px; border-bottom:1px solid #bbdefb; padding-bottom:5px;">البحث العكسي (توثيق نص)</h3>
+      
+      <div id="turath-cite-panel" style="margin-top:5px;">
+        <p style="font-size:11px; color:#555; margin-top:0; margin-bottom:8px;">حدّد نصًا في مستندك أولاً، ثم اضغط الزر لجلب النص والبحث عنه في موسوعة تراث.</p>
+        <button class="btn" style="background-color:#1565c0;" onclick="loadSelectionForCite()">جلب النص المحدد من المستند</button>
+        <textarea id="cite-query-text" style="width:100%; height:70px; margin-top:8px; padding:8px; font-size:12px; border:1px solid #90caf9; border-radius:4px; box-sizing:border-box; resize:vertical;" placeholder="سيظهر هنا النص المحدد، ويمكنك تعديله قبل البحث"></textarea>
+        <button class="btn btn-secondary" style="margin-top:8px; background-color: #1565c0; border:none;" onclick="runCiteSearch()">ابحث في تراث</button>
+        <div id="cite-results" style="margin-top:10px;"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- الإعدادات -->
+  <div id="settings-page" class="page">
+    <h2>الإعدادات <button class="btn btn-outline" style="padding:2px 5px; width:auto; float:left" onclick="nav('main-page')">عودة</button></h2>
+    
+    <div class="input-group" style="background: #e3f2fd; padding: 10px; border-radius: 4px; border: 1px solid #bbdefb;">
+      <label>مفتاح HadithAPI (للبحث الهيكلي فقط):</label>
+      <input type="password" id="set-apiKey" placeholder="ضع مفتاح API هنا...">
+    </div>
+
+    <div class="input-group" style="background: #fff; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+      <div class="color-row"><label style="margin:0;">لون متن القرآن:</label><input type="color" id="set-qColor"></div>
+      <div class="color-row"><label style="margin:0;">لون توثيق القرآن:</label><input type="color" id="set-qSourceColor"></div>
+      <div class="color-row"><label style="margin:0;">لون التفسير:</label><input type="color" id="set-tColor"></div>
+      <hr style="border-top:1px solid #eee; margin:8px 0;">
+      <div class="color-row"><label style="margin:0;">لون متن الحديث:</label><input type="color" id="set-hColor"></div>
+      <div class="color-row"><label style="margin:0;">لون توثيق الحديث:</label><input type="color" id="set-hSourceColor"></div>
+      <div class="color-row"><label style="margin:0;">لون شرح الحديث:</label><input type="color" id="set-sColor"></div>
+      <hr style="border-top:1px solid #eee; margin:8px 0;">
+      <div class="color-row"><label style="margin:0;">لون متن الاقتباس (تراث):</label><input type="color" id="set-turColor"></div>
+      <div class="color-row"><label style="margin:0;">لون توثيق الاقتباس:</label><input type="color" id="set-turSourceColor"></div>
+      <hr style="border-top:1px solid #eee; margin:8px 0;">
+      <div style="font-size:12px; color:#666; margin-bottom:4px;">توثيق تشعيبي (تحويل التوثيق إلى رابط قابل للنقر):</div>
+      <div class="color-row"><label style="margin:0; font-weight:normal;">رابط توثيق القرآن:</label><input type="checkbox" id="set-qLink"></div>
+      <div class="color-row"><label style="margin:0; font-weight:normal;">رابط توثيق الحديث:</label><input type="checkbox" id="set-hLink"></div>
+      <div class="color-row"><label style="margin:0; font-weight:normal;">رابط توثيق تراث:</label><input type="checkbox" id="set-turLink"></div>
+    </div>
+
+    <div class="input-group">
+      <label>نوع الخط:</label>
+      <select id="set-font">
+        <option value="Arial">Arial</option>
+        <option value="Tahoma">Tahoma</option>
+        <option value="Amiri">Amiri</option>
+      </select>
+    </div>
+    <div class="input-group">
+      <label>حجم المتن (للكل):</label><input type="number" id="set-fSize" min="8" max="36" value="14">
+    </div>
+    <button class="btn" onclick="saveSettings()">حفظ التعديلات</button>
+  </div>
+
+  <!-- صفحة حول التطبيق -->
+  <div id="about-page" class="page">
+    <h2>حول التطبيق <button class="btn btn-outline" style="padding:2px 5px; width:auto; float:left" onclick="nav('main-page')">عودة</button></h2>
+    
+    <div class="result-card" style="line-height: 1.8; font-size: 13px;">
+      <img src="https://res.cloudinary.com/dhuob4fz4/image/upload/v1789950614/meshkah_logo_kwavmr.png" alt="شعار مِشكاة" style="width: 100px; height: 100px; margin-bottom: 10px; display: block; margin-left: auto; margin-right: auto;">
+      <h3 style="color: #2c3e50; margin-bottom: 8px;">إضافة مِشكاة (الباحث الإسلامي)</h3>
+      <p style="margin-bottom: 10px;">أداة مخصصة لطلبة العلم الشرعي لإدراج الآيات القرآنية والتفاسير والأحاديث النبوية وشروحاتها مع التوثيق العلمي الدقيق .</p>
+      
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+      
+      <strong style="color: #2980b9;">المصادر والتقنيات المستخدمة (APIs):</strong>
+      <ul style="padding-right: 20px; margin-top: 5px; margin-bottom: 10px;">
+        <li><strong>القرآن الكريم:</strong> Alquran.Cloud API.</li>
+        <li><strong>التفاسير :</strong> Quran-Tafseer API (التفاسير العربية).</li>
+        <li><strong>الأحاديث النبوية:</strong> HadithAPI ( الكتب الستة وغيرها) وموسوعة الدرر السنية.</li>
+      </ul>
+      
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+      
+      <strong style="color: #2980b9;">شكر وتقدير خاص:</strong>
+      <p style="margin-top: 5px; margin-bottom: 10px;">نتقدم بخالص الشكر والامتنان لأصحاب الجهود التقنية والـ APIs الوسيطة التي ساهمت في تيسير هذه البيانات:</p>
+      <div style="margin-bottom: 5px;">
+        • <strong>أحمد الطبراني:</strong> 
+        <a href="https://github.com/AhmedElTabarani" target="_blank" style="color: #2980b9; text-decoration: underline;">GitHub Profile</a>
+      </div>
+      <div>
+        • <strong>رجيب:</strong> 
+        <a href="https://github.com/ragaeeb" target="_blank" style="color: #2980b9; text-decoration: underline;">GitHub Profile</a>
+      </div>
+
+      <hr style="border: 0; border-top: 1px solid #eee; margin: 10px 0;">
+      
+      <strong style="color: #2980b9;">الدعم والتواصل:</strong>
+      <p style="margin-top: 5px; margin-bottom: 0;">للاقتراحات والإبلاغ عن أخطاء، يسعدنا تواصلكم عبر البريد الإلكتروني:<br>
+      <a href="mailto:ahmedposswork@gmail.com" style="color: #2980b9; font-weight: bold;">ahmedposswork@gmail.com</a></p>
+    </div>
+  </div>
+
+  <script>
+    window.onerror = function(msg, url, line) {
+      document.getElementById('sys-error').style.display = 'block';
+      document.getElementById('sys-error').innerText = 'خطأ: ' + msg + ' (السطر ' + line + ')';
+      return false;
+    };
+
+    let currentHadithResults = []; 
+    let lastSearchType = ''; 
+
+    const surahsData = [
+      {"id":1,"name":"الفاتحة","ayahs":7}, {"id":2,"name":"البقرة","ayahs":286}, {"id":3,"name":"آل عمران","ayahs":200},
+      {"id":4,"name":"النساء","ayahs":176}, {"id":5,"name":"المائدة","ayahs":120}, {"id":6,"name":"الأنعام","ayahs":165},
+      {"id":7,"name":"الأعراف","ayahs":206}, {"id":8,"name":"الأنفال","ayahs":75}, {"id":9,"name":"التوبة","ayahs":129},
+      {"id":10,"name":"يونس","ayahs":109}, {"id":11,"name":"هود","ayahs":123}, {"id":12,"name":"يوسف","ayahs":111},
+      {"id":13,"name":"الرعد","ayahs":43}, {"id":14,"name":"إبراهيم","ayahs":52}, {"id":15,"name":"الحجر","ayahs":99},
+      {"id":16,"name":"النحل","ayahs":128}, {"id":17,"name":"الإسراء","ayahs":111}, {"id":18,"name":"الكهف","ayahs":110},
+      {"id":19,"name":"مريم","ayahs":98}, {"id":20,"name":"طه","ayahs":135}, {"id":21,"name":"الأنبياء","ayahs":112},
+      {"id":22,"name":"الحج","ayahs":78}, {"id":23,"name":"المؤمنون","ayahs":118}, {"id":24,"name":"النور","ayahs":64},
+      {"id":25,"name":"الفرقان","ayahs":77}, {"id":26,"name":"الشعراء","ayahs":227}, {"id":27,"name":"النمل","ayahs":93},
+      {"id":28,"name":"القصص","ayahs":88}, {"id":29,"name":"العنكبوت","ayahs":69}, {"id":30,"name":"الروم","ayahs":60},
+      {"id":31,"name":"لقمان","ayahs":34}, {"id":32,"name":"السجدة","ayahs":30}, {"id":33,"name":"الأحزاب","ayahs":73},
+      {"id":34,"name":"سبأ","ayahs":54}, {"id":35,"name":"فاطر","ayahs":45}, {"id":36,"name":"يس","ayahs":83},
+      {"id":37,"name":"الصافات","ayahs":182}, {"id":38,"name":"ص","ayahs":88}, {"id":39,"name":"الزمر","ayahs":75},
+      {"id":40,"name":"غافر","ayahs":85}, {"id":41,"name":"فصلت","ayahs":54}, {"id":42,"name":"الشورى","ayahs":53},
+      {"id":43,"name":"الزخرف","ayahs":89}, {"id":44,"name":"الدخان","ayahs":59}, {"id":45,"name":"الجاثية","ayahs":37},
+      {"id":46,"name":"الأحقاف","ayahs":35}, {"id":47,"name":"محمد","ayahs":38}, {"id":48,"name":"الفتح","ayahs":29},
+      {"id":49,"name":"الحجرات","ayahs":18}, {"id":50,"name":"ق","ayahs":45}, {"id":51,"name":"الذاريات","ayahs":60},
+      {"id":52,"name":"الطور","ayahs":49}, {"id":53,"name":"النجم","ayahs":62}, {"id":54,"name":"القمر","ayahs":55},
+      {"id":55,"name":"الرحمن","ayahs":78}, {"id":56,"name":"الواقعة","ayahs":96}, {"id":57,"name":"الحديد","ayahs":29},
+      {"id":58,"name":"المجادلة","ayahs":22}, {"id":59,"name":"الحشر","ayahs":24}, {"id":60,"name":"الممتحنة","ayahs":13},
+      {"id":61,"name":"الصف","ayahs":14}, {"id":62,"name":"الجمعة","ayahs":11}, {"id":63,"name":"المنافقون","ayahs":11},
+      {"id":64,"name":"التغابن","ayahs":18}, {"id":65,"name":"الطلاق","ayahs":12}, {"id":66,"name":"التحريم","ayahs":12},
+      {"id":67,"name":"الملك","ayahs":30}, {"id":68,"name":"القلم","ayahs":52}, {"id":69,"name":"الحاقة","ayahs":52},
+      {"id":70,"name":"المعارج","ayahs":44}, {"id":71,"name":"نوح","ayahs":28}, {"id":72,"name":"الجن","ayahs":28},
+      {"id":73,"name":"المزمل","ayahs":20}, {"id":74,"name":"المدثر","ayahs":56}, {"id":75,"name":"القيامة","ayahs":40},
+      {"id":76,"name":"الإنسان","ayahs":31}, {"id":77,"name":"المرسلات","ayahs":50}, {"id":78,"name":"النبأ","ayahs":40},
+      {"id":79,"name":"النازعات","ayahs":46}, {"id":80,"name":"عبس","ayahs":42}, {"id":81,"name":"التكوير","ayahs":29},
+      {"id":82,"name":"الانفطار","ayahs":19}, {"id":83,"name":"المطففين","ayahs":36}, {"id":84,"name":"الانشقاق","ayahs":25},
+      {"id":85,"name":"البروج","ayahs":22}, {"id":86,"name":"الطارق","ayahs":17}, {"id":87,"name":"الأعلى","ayahs":19},
+      {"id":88,"name":"الغاشية","ayahs":26}, {"id":89,"name":"الفجر","ayahs":30}, {"id":90,"name":"البلد","ayahs":20},
+      {"id":91,"name":"الشمس","ayahs":15}, {"id":92,"name":"الليل","ayahs":21}, {"id":93,"name":"الضحى","ayahs":11},
+      {"id":94,"name":"الشرح","ayahs":8}, {"id":95,"name":"التين","ayahs":8}, {"id":96,"name":"العلق","ayahs":19},
+      {"id":97,"name":"القدر","ayahs":5}, {"id":98,"name":"البينة","ayahs":8}, {"id":99,"name":"الزلزلة","ayahs":8},
+      {"id":100,"name":"العاديات","ayahs":11}, {"id":101,"name":"القارعة","ayahs":11}, {"id":102,"name":"التكاثر","ayahs":8},
+      {"id":103,"name":"العصر","ayahs":3}, {"id":104,"name":"الهمزة","ayahs":9}, {"id":105,"name":"الفيل","ayahs":5},
+      {"id":106,"name":"قريش","ayahs":4}, {"id":107,"name":"الماعون","ayahs":7}, {"id":108,"name":"الكوثر","ayahs":3},
+      {"id":109,"name":"الكافرون","ayahs":6}, {"id":110,"name":"النصر","ayahs":3}, {"id":111,"name":"المسد","ayahs":5},
+      {"id":112,"name":"الإخلاص","ayahs":4}, {"id":113,"name":"الفلق","ayahs":5}, {"id":114,"name":"الناس","ayahs":6}
+    ];
+
+    const arabicBookNames = {
+      "sahih-bukhari": "صحيح البخاري",
+      "sahih-muslim": "صحيح مسلم",
+      "al-tirmidhi": "جامع الترمذي",
+      "abu-dawood": "سنن أبي داود",
+      "sunan-nasai": "سنن النسائي",
+      "ibn-e-majah": "سنن ابن ماجه",
+      "musnad-ahmad": "مسند أحمد",
+      "mishkat": "مشكاة المصابيح",
+      "al-silsila-sahiha": "السلسلة الصحيحة"
+    };
+
+    const sallaRegex = /ص[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*[ىيأای]?[\u064B-\u065F\u0670]*[\s\u200C]+ا?[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*[هہ][\u064B-\u065F\u0670]*[\s\u200C]+ع[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*[يی][\u064B-\u065F\u0670]*[هہ][\u064B-\u065F\u0670]*[\s\u200C]+و[\u064B-\u065F\u0670]*س[\u064B-\u065F\u0670]*ل[\u064B-\u065F\u0670]*م[\u064B-\u065F\u0670]*/g;
+
+    window.onload = function() {
+      initSurahsDropdown();
+      loadSettings();
+      
+      document.querySelectorAll('.text-book-item').forEach(cb => {
+        cb.addEventListener('change', () => {
+          if (!cb.checked) document.getElementById('text-all-books').checked = false;
+          const allCbs = Array.from(document.querySelectorAll('.text-book-item'));
+          if (allCbs.every(c => c.checked)) document.getElementById('text-all-books').checked = true;
+          reRenderResults();
+        });
+      });
+    };
+
+    function toggleAllBooks() {
+      const isChecked = document.getElementById('text-all-books').checked;
+      document.querySelectorAll('.text-book-item').forEach(cb => cb.checked = isChecked);
+      reRenderResults();
+    }
+
+    function initSurahsDropdown() {
+      const datalist = document.getElementById('surahs-list');
+      surahsData.forEach(s => {
+        let option = document.createElement('option');
+        option.value = s.id + ". " + s.name;
+        datalist.appendChild(option);
+      });
+    }
+
+    function updateAyahRange() {
+      const val = document.getElementById('surah-select').value;
+      const match = val.match(/^(\d+)/);
+      if(match) {
+        const surah = surahsData.find(s => s.id === parseInt(match[1]));
+        if(surah) {
+          document.getElementById('ayah-from').max = surah.ayahs;
+          document.getElementById('ayah-to').max = surah.ayahs;
+          document.getElementById('ayah-to').value = surah.ayahs;
+        }
+      }
+    }
+
+    function nav(pageId) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active-page'));
+      document.getElementById(pageId).classList.add('active-page');
+    }
+
+    function showLoader(show) { document.getElementById('loader').style.display = show ? 'block' : 'none'; }
+    function formatSurahName(rawName) { return rawName.replace(/^س[ُ]?ور[َ]?[ة]?[ُ]?\s*/, '').trim(); }
+
+    function searchQuranText() {
+      const query = document.getElementById('quran-text').value;
+      if(!query) return;
+      showLoader(true);
+      google.script.run
+        .withSuccessHandler(renderQuranResults)
+        .withFailureHandler(err => { showLoader(false); alert(err.message); })
+        .searchQuranByText(query);
+    }
+
+    function renderQuranResults(results) {
+      showLoader(false);
+      const div = document.getElementById('quran-results');
+      div.innerHTML = '';
+      if(!results || results.length === 0) { div.innerHTML = '<div class="error-msg">لا توجد نتائج مطابقة.</div>'; return; }
+      
+      results.forEach(res => {
+        const cleanName = formatSurahName(res.surah.name);
+        const sourceText = cleanName + " " + res.numberInSurah;
+        const ayahText = res.text + " ﴿" + res.numberInSurah + "﴾";
+        
+        // بناء رابط القرآن
+        const quranUrl = `https://quran.com/${res.surah.number}/${res.numberInSurah}`;
+        
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.innerHTML = '<div>' + ayahText + '</div><div style="color:#777; font-size:11px; margin-top:5px;">[' + sourceText + ']</div>';
+        
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.innerText = 'إدراج الآية';
+        btn.onclick = function() { 
+          insertDataWithOptions({ text: ayahText, source: sourceText, type: 'quran', sourceUrl: quranUrl }); 
+        };
+        
+        card.appendChild(btn);
+        div.appendChild(card);
+      });
+    }
+
+    function fetchQuranRange() {
+      const val = document.getElementById('surah-select').value;
+      const from = parseInt(document.getElementById('ayah-from').value);
+      const to = parseInt(document.getElementById('ayah-to').value);
+      
+      const tafsirSelect = document.getElementById('tafsir-select');
+      const tafsirId = tafsirSelect.value;
+      const tafsirName = tafsirSelect.options[tafsirSelect.selectedIndex].text;
+      
+      const match = val.match(/^(\d+)/);
+      if(!match) return alert('الرجاء اختيار السورة بشكل صحيح');
+      if (from > to) return alert('نطاق الآيات غير صحيح');
+      
+      showLoader(true);
+      google.script.run
+        .withSuccessHandler(renderQuranRange)
+        .withFailureHandler(err => { showLoader(false); alert(err.message); })
+        .getQuranAndTafsirRange(parseInt(match[1]), from, to, tafsirId, tafsirName);
+    }
+
+    function renderQuranRange(data) {
+      showLoader(false);
+      const div = document.getElementById('quran-results');
+      div.innerHTML = '';
+      
+      if(data.error) { div.innerHTML = '<div class="error-msg">'+data.error+'</div>'; return; }
+      
+      const verses = data.ayahs;
+      if(!verses || verses.length === 0) return;
+
+      const cleanName = formatSurahName(data.surahName);
+      let sourceText = verses.length === 1 ? cleanName + " " + verses[0].numberInSurah : cleanName + " " + verses[0].numberInSurah + "-" + verses[verses.length-1].numberInSurah;
+      
+      let fullAyahText = verses.map(v => v.text + " ﴿" + v.numberInSurah + "﴾").join(' ');
+      
+      // استخراج رقم السورة لبناء الرابط
+      const surahVal = document.getElementById('surah-select').value;
+      const surahIdMatch = surahVal.match(/^(\d+)/);
+      const surahId = surahIdMatch ? surahIdMatch[1] : "1";
+      const fromAyah = verses[0].numberInSurah;
+      const toAyah = verses[verses.length-1].numberInSurah;
+      const quranUrl = `https://quran.com/${surahId}/${fromAyah}-${toAyah}`;
+      
+      const cardAyah = document.createElement('div');
+      cardAyah.className = 'result-card';
+      cardAyah.innerHTML = '<div>' + fullAyahText + '</div><div style="color:#777; font-size:11px; margin-top:5px;">[' + sourceText + ']</div>';
+      
+      const btnAyah = document.createElement('button');
+      btnAyah.className = 'btn';
+      btnAyah.innerText = 'إدراج الآيات';
+      btnAyah.onclick = function() { 
+        insertDataWithOptions({ text: fullAyahText, source: sourceText, type: 'quran', sourceUrl: quranUrl }); 
+      };
+      
+      cardAyah.appendChild(btnAyah);
+      div.appendChild(cardAyah);
+
+      if (data.tafsirs && data.tafsirs.length > 0) {
+        let removeTashkeelFlag = document.getElementById('tafsir-remove-tashkeel').checked;
+        
+        let fullTafsirText = data.tafsirs.map(t => {
+            let txt = t.text;
+            if (removeTashkeelFlag) txt = removeTashkeel(txt);
+            return (verses.length > 1 ? "﴿" + t.numberInSurah + "﴾ " : "") + txt.trim();
+        }).join('\n\n');
+
+        fullTafsirText = fullTafsirText.replace(sallaRegex, 'ﷺ');
+        let tafsirSource = data.tafsirName || "التفسير";
+        
+        const cardTafsir = document.createElement('div');
+        cardTafsir.className = 'result-card';
+        cardTafsir.style.marginTop = '10px';
+        cardTafsir.style.borderTop = '3px solid #2980b9'; 
+        cardTafsir.innerHTML = '<div style="color:#1565c0; font-weight:bold; font-size:11px; margin-bottom:5px;">' + tafsirSource + ':</div><div>' + fullTafsirText.replace(/\n/g, '<br>') + '</div>';
+        
+        const btnTafsir = document.createElement('button');
+        btnTafsir.className = 'btn btn-secondary'; 
+        btnTafsir.innerText = 'إدراج التفسير';
+        btnTafsir.onclick = function() { 
+          // نوثق التفسير بنفس رابط الآية ليسهل الرجوع إليها
+          insertDataWithOptions({ text: fullTafsirText, source: tafsirSource, type: 'tafsir', sourceUrl: quranUrl }); 
+        };
+        
+        cardTafsir.appendChild(btnTafsir);
+        div.appendChild(cardTafsir);
+      }
+    }
+
+    function checkApiKeyBeforeAction(callback) {
+      google.script.run.withSuccessHandler(settings => {
+        const apiKey = settings.hadithApiKey;
+        if (!apiKey || apiKey.trim() === '') {
+          document.getElementById('hadith-results').innerHTML = 
+            `<div class="error-msg">
+               يرجى إضافة مفتاح HadithAPI في <b>الإعدادات</b> للبحث الهيكلي.<br>
+             </div>`;
+          return;
+        }
+        callback(apiKey);
+      }).getSettings();
+    }
+
+    function searchStruct() {
+      const bookSlug = document.getElementById('struct-book').value;
+      const hadithNum = document.getElementById('struct-num').value;
+      if(!hadithNum) return alert('الرجاء كتابة رقم الحديث');
+      
+      checkApiKeyBeforeAction(function(apiKey) {
+        showLoader(true);
+        lastSearchType = 'struct';
+        google.script.run
+          .withSuccessHandler(data => handleStructData(data))
+          .withFailureHandler(err => { showLoader(false); document.getElementById('hadith-results').innerHTML = '<div class="error-msg">خطأ: ' + err.message + '</div>'; })
+          .getHadithByNumberAPI(bookSlug, hadithNum, apiKey);
+      });
+    }
+
+    function searchText() {
+      const query = document.getElementById('text-query').value;
+      if(!query) return;
+      showLoader(true);
+      lastSearchType = 'text';
+      google.script.run
+        .withSuccessHandler(data => handleTextData(data))
+        .withFailureHandler(err => { showLoader(false); document.getElementById('hadith-results').innerHTML = '<div class="error-msg">خطأ: ' + err.message + '</div>'; })
+        .searchHadithTextDorarAPI(query);
+    }
+
+    function toggleFilter(filterId, arrowId) {
+      const content = document.getElementById(filterId);
+      const arrow = document.getElementById(arrowId);
+      if (content.style.display === 'block') {
+        content.style.display = 'none';
+        arrow.style.transform = 'rotate(0deg)';
+      } else {
+        content.style.display = 'block';
+        arrow.style.transform = 'rotate(180deg)';
+      }
+    }
+
+    function removeTashkeel(text) {
+      // النطاق الأصلي (تشكيل قياسي) + تطويل + علامات وقف/ضبط ممتدة
+      // شائعة في النصوص التراثية المطبوعة من مخطوطات
+      return text.replace(/[\u0610-\u061A\u064B-\u065F\u0670\u06D6-\u06DC\u06DF-\u06E8\u06EA-\u06ED\u08D3-\u08FF\u0640]/g, '');
+    }
+
+    function getOriginalIndex(original, cleanIndex) {
+      let cleanCount = 0;
+      for (let i = 0; i < original.length; i++) {
+        if (cleanCount === cleanIndex) return i;
+        if (!/[\u064B-\u065F\u0670]/.test(original[i])) {
+          cleanCount++;
+        }
+      }
+      return original.length;
+    }
+
+    function splitHadithText(originalText) {
+      const cleanText = removeTashkeel(originalText);
+      const primaryAnchors = ["قال رسول الله", "يقول رسول الله", "سمعت رسول الله", "أن رسول الله", "عن رسول الله", "عن النبي", "أن النبي", "قال النبي", "قال الله تعالى", "يقول الله تعالى", "قال الله عز وجل", "فيما يرويه عن ربه", "عن ربه تبارك وتعالى"];
+      const storyAnchors = ["بينما نحن", "بينما أنا", "كنا جلوسا", "كنا مع", "جاء رجل", "جاء أعرابي", "سئل رسول الله", "خطبنا", "خرج علينا"];
+      const combinedAnchors = [...primaryAnchors, ...storyAnchors];
+      
+      for (let anchor of combinedAnchors) {
+        let index = cleanText.indexOf(anchor);
+        if (index !== -1 && index < (cleanText.length * 0.8)) {
+          let origIndex = getOriginalIndex(originalText, index);
+          return { sanad: originalText.substring(0, origIndex).trim(), matn: originalText.substring(origIndex).trim() };
+        }
+      }
+
+      const sahabiPattern = /عن\s+([^\s]+\s+){1,4}(قال|أنه قال|أن|سئل|يقول)\s*[:،-]?/g;
+      let match, lastMatchIndex = -1, matchLength = 0;
+
+      while ((match = sahabiPattern.exec(cleanText)) !== null) {
+        if (match.index < (cleanText.length * 0.5)) {
+          lastMatchIndex = match.index; matchLength = match[0].length;
+        }
+      }
+
+      if (lastMatchIndex !== -1) {
+        let splitPoint = lastMatchIndex + matchLength;
+        let origSplit = getOriginalIndex(originalText, splitPoint);
+        return { sanad: originalText.substring(0, origSplit).trim(), matn: originalText.substring(origSplit).trim() };
+      }
+
+      return { sanad: "", matn: originalText };
+    }
+
+    function toggleMatnWarning() {
+      const isChecked = document.getElementById('struct-remove-sanad').checked;
+      document.getElementById('matn-warning').style.display = isChecked ? 'block' : 'none';
+      reRenderResults();
+    }
+
+    function reRenderResults() {
+      if (lastSearchType === 'struct') {
+        renderStructResults();
+      } else if (lastSearchType === 'text') {
+        renderTextResults();
+      }
+    }
+
+    function handleStructData(data) {
+      showLoader(false);
+      if (data.error) { document.getElementById('hadith-results').innerHTML = '<div class="error-msg">' + data.error + '</div>'; return; }
+      currentHadithResults = data.hadiths && Array.isArray(data.hadiths.data) ? data.hadiths.data : [];
+      renderStructResults();
+    }
+
+    function renderStructResults() {
+      const div = document.getElementById('hadith-results');
+      div.innerHTML = '';
+      if (currentHadithResults.length === 0) { div.innerHTML = '<div class="error-msg">لا توجد نتائج مطابقة.</div>'; return; }
+
+      const removeSanadFlag = document.getElementById('struct-remove-sanad').checked;
+      const removeTashkeelFlag = document.getElementById('struct-remove-tashkeel').checked;
+
+      currentHadithResults.forEach(item => {
+        let cleanText = item.hadithArabic ? item.hadithArabic.replace(/<[^>]+>/g, '').trim() : '';
+        cleanText = cleanText.replace(sallaRegex, 'ﷺ');
+        let textToProcess = removeTashkeelFlag ? removeTashkeel(cleanText) : cleanText;
+
+        let displayText = "", textToInsert = "";
+        if (removeSanadFlag) {
+          const parts = splitHadithText(textToProcess);
+          if (parts.sanad !== "") {
+            displayText = `<span style="color: #aaa; text-decoration: line-through;">${parts.sanad}</span> <span style="color: #000; font-weight: bold;">${parts.matn}</span>`;
+            textToInsert = parts.matn;
+          } else {
+            displayText = `<span style="color: #000;">${textToProcess}</span>`; textToInsert = textToProcess;
+          }
+        } else {
+          displayText = `<span style="color: #000;">${textToProcess}</span>`; textToInsert = textToProcess;
+        }
+
+        const apiBookSlug = item.bookSlug || (item.book && item.book.bookSlug) || '';
+        const bookNameArabic = arabicBookNames[apiBookSlug] || 'موسوعة الأحاديث';
+        const sourceText = `${bookNameArabic} (${item.hadithNumber || ''})`;
+
+        // إرفاق اسم الكتاب ليتم استخدامه في دالة createCard لزر الإنجليزية
+        item.bookName = bookNameArabic;
+
+        createCard(div, displayText, textToInsert, sourceText, item);
+      });
+    }
+
+    function getItemWeight(item) {
+      const b = (item.bookName || '').trim();
+      const g = (item.grade || '').toLowerCase();
+      const takhrij = item.takhrij || '';
+
+      if (extractMuttafaqRegex(takhrij) !== null) return 1;
+      if (b === 'صحيح البخاري' || b.startsWith('صحيح البخاري')) return 2;
+      if (b === 'صحيح مسلم' || b.startsWith('صحيح مسلم')) return 3;
+
+      let gradeWeight = 5;
+      if (g.includes('صحيح') || g.includes('ثابت')) gradeWeight = 4;
+      else if (g.includes('جيد') || g.includes('حسن') || g.includes('قوي')) gradeWeight = 5;
+      else if (g.includes('ضعيف') || g.includes('منكر') || g.includes('موضوع') || g.includes('وهم') || g.includes('خطأ') || g.includes('لا يصح')) gradeWeight = 10;
+
+      return gradeWeight;
+    }
+
+    function extractMuttafaqRegex(takhrij) {
+      if (!takhrij) return null;
+      const bMatch = takhrij.match(/البخاري[^\d]{0,15}(\d+)/);
+      const mMatch = takhrij.match(/مسلم[^\d]{0,15}(\d+)/);
+      if (bMatch && mMatch) {
+        return `متفق عليه خ(${bMatch[1]})، م(${mMatch[1]})`;
+      }
+      return null;
+    }
+
+    function handleTextData(data) {
+      showLoader(false);
+      if (data.error) { document.getElementById('hadith-results').innerHTML = '<div class="error-msg">' + data.error + '</div>'; return; }
+      currentHadithResults = data.hadiths && Array.isArray(data.hadiths.data) ? data.hadiths.data : [];
+      renderTextResults();
+    }
+
+    function renderTextResults() {
+      const div = document.getElementById('hadith-results');
+      div.innerHTML = '';
+      
+      let results = currentHadithResults;
+      const allChecked = document.getElementById('text-all-books').checked;
+      
+      if (!allChecked) {
+        const selectedBooks = Array.from(document.querySelectorAll('.text-book-item:checked')).map(cb => cb.value);
+        if (selectedBooks.length > 0) {
+          results = results.filter(item => {
+            const bName = item.bookName || '';
+            return selectedBooks.some(sb => bName.startsWith(sb)); 
+          });
+        } else {
+          results = []; 
+        }
+      }
+
+      if (results.length === 0) { div.innerHTML = '<div class="error-msg">لا توجد نتائج مطابقة لتحديدك.</div>'; return; }
+
+      const prioritizeSharh = document.getElementById('text-prioritize-sharh').checked;
+      const prioritizeEnglish = document.getElementById('text-prioritize-english').checked;
+
+      function getFinalWeight(item) {
+        let baseWeight = getItemWeight(item);
+        if (prioritizeEnglish && baseWeight <= 4) {
+          const supportedBooks = ['صحيح البخاري', 'صحيح مسلم', 'جامع الترمذي', 'سنن أبي داود', 'سنن النسائي', 'سنن ابن ماجه', 'مشكاة المصابيح'];
+          if (item.bookName && item.hadithNumber && supportedBooks.some(b => item.bookName.startsWith(b))) {
+            return baseWeight - 200;
+          }
+        }
+        if (prioritizeSharh && item.hasSharh && baseWeight <= 4) {
+          return baseWeight - 100;
+        }
+        return baseWeight;
+      }
+
+      results.sort((a, b) => getFinalWeight(a) - getFinalWeight(b));
+
+      const removeTashkeelFlag = document.getElementById('text-remove-tashkeel').checked;
+      const takhreejOpt = document.querySelector('input[name="takhreej-opt"]:checked').value;
+
+      let grouped = [];
+      results.forEach(item => {
+        let textCleaned = (item.hadithArabic || '').replace(/[\u064B-\u065F\u0670]/g, '').replace(/[^\u0621-\u064A]/g, '').replace(/^(يعنيحديث|حديث|رواه|عن)/, '');
+        let key = textCleaned.substring(0, 30);
+        let match = grouped.find(g => g.key.startsWith(key) || key.startsWith(g.key));
+        if (match) match.items.push(item);
+        else grouped.push({ key: key, items: [item] });
+      });
+
+      grouped.sort((a, b) => getFinalWeight(a.items[0]) - getFinalWeight(b.items[0]));
+
+      grouped.forEach(group => {
+        let primaryItem = group.items[0]; 
+        
+        let textToInsert = removeTashkeelFlag ? removeTashkeel(primaryItem.hadithArabic) : primaryItem.hadithArabic;
+        textToInsert = textToInsert.replace(/<[^>]+>/g, '').replace(/^(يعني حديث|حديث|\[يعني حديث\])\s*[:\-]?\s*/, '').replace(sallaRegex, 'ﷺ').trim();
+        let displayText = `<span style="color: #000;">${textToInsert}</span>`;
+
+        let sourceText = "";
+        let muttafaqStr = extractMuttafaqRegex(primaryItem.takhrij); 
+
+        if (muttafaqStr) {
+          if (takhreejOpt === 'one') {
+            sourceText = muttafaqStr;
+          } else {
+            let sourcesArr = [muttafaqStr];
+            let handledBooks = new Set(['صحيح البخاري', 'صحيح مسلم']);
+            let addedCount = 0;
+            for (let i of group.items) {
+              let bName = i.bookName || '';
+              if (!handledBooks.has(bName) && !bName.startsWith('صحيح البخاري') && !bName.startsWith('صحيح مسلم')) {
+                sourcesArr.push(buildSingleSourceText(i));
+                handledBooks.add(bName);
+                addedCount++;
+              }
+              if (addedCount >= 2) break; 
+            }
+            sourceText = sourcesArr.join(" ، ");
+          }
+        } else {
+          if (takhreejOpt === 'one') {
+            sourceText = buildSingleSourceText(primaryItem);
+          } else {
+            let sourcesArr = [];
+            let handledBooks = new Set();
+            let addedCount = 0;
+            for (let i of group.items) {
+              let bName = i.bookName || '';
+              if (!handledBooks.has(bName)) {
+                sourcesArr.push(buildSingleSourceText(i));
+                handledBooks.add(bName);
+                addedCount++;
+              }
+              if (addedCount >= 3) break;
+            }
+            sourceText = sourcesArr.join(" ، ");
+          }
+        }
+
+        createCard(div, displayText, textToInsert, sourceText, primaryItem);
+      });
+    }
+
+    function buildSingleSourceText(item) {
+      const bName = item.bookName || 'موسوعة الأحاديث';
+      let numText = item.hadithNumber ? ` (${item.hadithNumber})` : "";
+      let gradeText = "";
+      if (item.grade) {
+        let gradeClean = item.grade.replace(/[\[\]]/g, '').trim();
+        let mohdith = item.mohdith ? " - " + item.mohdith.replace('المحدث:', '').trim() : "";
+        gradeText = ` [${gradeClean}${mohdith}]`;
+      }
+      return `${bName}${numText}${gradeText}`;
+    }
+
+    function createCard(div, displayText, textToInsert, sourceText, primaryItem) {
+      const card = document.createElement('div');
+      card.className = 'result-card';
+      card.innerHTML = '<div>' + displayText + '</div><div style="color:#777; font-size:11px; margin-top:5px; line-height: 1.8;">[' + sourceText + ']</div>';
+      
+      const btnContainer = document.createElement('div');
+      btnContainer.style.display = 'flex';
+      btnContainer.style.gap = '8px';
+      btnContainer.style.marginTop = '10px';
+      btnContainer.style.flexWrap = 'wrap';
+
+      // بناء رابط بحث عن الحديث في موقع الدرر السنية بأول 50 حرف من الحديث لضمان الدقة
+      let searchSnippet = removeTashkeel(primaryItem.hadithArabic).substring(0, 50).trim();
+      let hadithUrl = `https://dorar.net/hadith/search?q=${encodeURIComponent(searchSnippet)}`;
+
+      const btnInsertHadith = document.createElement('button');
+      btnInsertHadith.className = 'btn';
+      btnInsertHadith.style.margin = '0';
+      btnInsertHadith.innerText = 'إدراج الحديث';
+      btnInsertHadith.onclick = function() { 
+        insertDataWithOptions({ text: textToInsert, source: sourceText, type: 'hadith', sourceUrl: hadithUrl }); 
+      };
+      btnContainer.appendChild(btnInsertHadith); 
+
+      // زر الإنجليزية
+      if (primaryItem && primaryItem.bookName && primaryItem.hadithNumber) {
+        const supportedBooks = ['صحيح البخاري', 'صحيح مسلم', 'جامع الترمذي', 'سنن أبي داود', 'سنن النسائي', 'سنن ابن ماجه', 'مشكاة المصابيح'];
+        let isSupported = supportedBooks.some(b => primaryItem.bookName.startsWith(b));
+        
+        if (isSupported) {
+          const btnInsertEnglish = document.createElement('button');
+          btnInsertEnglish.className = 'btn btn-secondary';
+          btnInsertEnglish.style.margin = '0';
+          btnInsertEnglish.innerText = 'إدراج بالإنجليزية';
+          btnInsertEnglish.onclick = function() {
+            let sunnahComUrl = `https://sunnah.com/search?q=${encodeURIComponent(primaryItem.bookName + " " + primaryItem.hadithNumber)}`;
+            
+            if (primaryItem.hasOwnProperty('hadithEnglish')) {
+                let enText = primaryItem.hadithEnglish || "النص الإنجليزي غير متوفر.";
+                enText = enText.replace(sallaRegex, 'ﷺ');
+                let enBook = primaryItem.book ? primaryItem.book.bookName : primaryItem.bookName;
+                let enSource = enBook + " (" + primaryItem.hadithNumber + ") [HadithAPI]";
+                if (enText === "النص الإنجليزي غير متوفر.") {
+                   alert(enText);
+                } else {
+                   insertDataWithOptions({ text: enText, source: enSource, type: 'hadith', sourceUrl: sunnahComUrl });
+                }
+            } else {
+                checkApiKeyBeforeAction(function(apiKey) {
+                  showLoader(true);
+                  google.script.run
+                    .withSuccessHandler(res => {
+                      showLoader(false);
+                      if (res.error) {
+                        alert(res.error);
+                      } else {
+                        let enText = res.englishText;
+                        enText = enText.replace(sallaRegex, 'ﷺ');
+                        let enSource = res.englishBook + " (" + res.englishNumber + ") [HadithAPI]";
+                        insertDataWithOptions({ text: enText, source: enSource, type: 'hadith', sourceUrl: sunnahComUrl });
+                      }
+                    })
+                    .withFailureHandler(err => { showLoader(false); alert(err.message); })
+                    .fetchEnglishHadithByBookAndNum(primaryItem.bookName, primaryItem.hadithNumber, apiKey);
+                });
+            }
+          };
+          btnContainer.appendChild(btnInsertEnglish);
+        }
+      }
+
+      if (primaryItem && primaryItem.hasSharh && primaryItem.sharhId) {
+        const btnInsertSharh = document.createElement('button');
+        btnInsertSharh.className = 'btn btn-alt'; 
+        btnInsertSharh.style.margin = '0';
+        btnInsertSharh.style.backgroundColor = '#7f8c8d';
+        btnInsertSharh.style.color = '#fff';
+        btnInsertSharh.innerHTML = 'إدراج الشرح';
+        btnInsertSharh.onclick = function() { insertSharhData(primaryItem.sharhId, hadithUrl); };
+        btnContainer.appendChild(btnInsertSharh); 
+      }
+
+      card.appendChild(btnContainer);
+      div.appendChild(card);
+    }
+
+    function insertSharhData(sharhId, hadithUrl) { // <-- 1. استقبال الرابط هنا
+      showLoader(true);
+      google.script.run
+        .withSuccessHandler(res => {
+          showLoader(false);
+          if (res.error) {
+            alert(res.error);
+          } else {
+            // 1. تحويل وسوم HTML الأساسية إلى أسطر للحفاظ على الهيكلة قبل التنظيف
+            let htmlFormatted = res.sharh.replace(/<(br|p|div)[^>]*>/gi, '\n');
+            
+            // 2. إزالة باقي وسوم HTML
+            let cleanSharh = htmlFormatted.replace(/<[^>]+>/g, '').trim();
+            
+            // 3. توحيد الأسطر الفارغة المتعددة
+            cleanSharh = cleanSharh.replace(/\n\s*\n/g, '\n\n');
+
+            // 4. الفلتر الذكي: عزل الشرح الصافي وقص معلومات الحديث والتخريج
+            let takhrijIndex = cleanSharh.indexOf('التخريج :');
+            if (takhrijIndex === -1) takhrijIndex = cleanSharh.indexOf('التخريج:'); 
+            let hokmIndex = cleanSharh.indexOf('خلاصة حكم المحدث :');
+            
+            // تحديد آخر نقطة ظهرت فيها معلومات التخريج أو الحكم
+            let splitPoint = Math.max(takhrijIndex, hokmIndex);
+            
+            if (splitPoint !== -1) {
+              // البحث عن أول سطر فارغ بعد التخريج (والذي يبدأ بعده الشرح دائماً)
+              let doubleNewline = cleanSharh.indexOf('\n\n', splitPoint);
+              if (doubleNewline !== -1) {
+                cleanSharh = cleanSharh.substring(doubleNewline).trim();
+              } else {
+                // بديل احتياطي إذا لم يوجد سطر فارغ، يقص بعد سطر التخريج مباشرة
+                let singleNewline = cleanSharh.indexOf('\n', splitPoint + 10);
+                if (singleNewline !== -1) {
+                  cleanSharh = cleanSharh.substring(singleNewline).trim();
+                }
+              }
+            }
+
+            // 5. تطبيق فلتر إزالة التشكيل إذا كان مفعلاً
+            let removeTashkeelFlag = false;
+            if (lastSearchType === 'struct') {
+              removeTashkeelFlag = document.getElementById('struct-remove-tashkeel').checked;
+            } else {
+              removeTashkeelFlag = document.getElementById('text-remove-tashkeel').checked;
+            }
+
+            if (removeTashkeelFlag) {
+              cleanSharh = removeTashkeel(cleanSharh);
+            }
+
+            // فك التشفير للرموز مثل &quot; ثم استبدال صلى الله عليه وسلم
+            cleanSharh = decodeHtmlEntities(cleanSharh);
+            cleanSharh = cleanSharh.replace(sallaRegex, 'ﷺ');
+
+            // 6. تجهيز النص النهائي والإدراج
+            let sharhText = "\nالشرح: " + cleanSharh; 
+            let source = "الشرح من الموسوعة الحديثية بالدرر السنية";
+            
+            // 7. استخدام الدالة الجديدة لتفعيل الرابط التشعيبي
+            insertDataWithOptions({ text: sharhText, source: source, type: 'sharh', sourceUrl: hadithUrl });
+          }
+        })
+        .withFailureHandler(err => {
+          showLoader(false);
+          alert('خطأ في الاتصال: ' + err.message);
+        })
+        .fetchSharhAPI(sharhId);
+    }
+
+    function insertData(text, source, type) {
+      showLoader(true);
+      google.script.run
+        .withSuccessHandler(() => { showLoader(false); })
+        .withFailureHandler(err => { showLoader(false); alert(err.message); })
+        .insertContent({ text: text, source: source, type: type });
+    }
+
+    function loadSettings() {
+      google.script.run.withSuccessHandler(settings => {
+        document.getElementById('set-qColor').value = settings.quranColor || '#000000';
+        document.getElementById('set-hColor').value = settings.hadithColor || '#000000';
+        document.getElementById('set-sColor').value = settings.sharhColor || '#333333';
+        document.getElementById('set-tColor').value = settings.tafsirColor || '#2980b9';
+        document.getElementById('set-qSourceColor').value = settings.quranSourceColor || '#7f8c8d';
+        document.getElementById('set-hSourceColor').value = settings.hadithSourceColor || '#7f8c8d';
+        document.getElementById('set-turColor').value = settings.turathColor || '#2c3e50';
+        document.getElementById('set-turSourceColor').value = settings.turathSourceColor || '#7f8c8d';
+        document.getElementById('set-qLink').checked = !!settings.quranLinkToggle;
+        document.getElementById('set-hLink').checked = !!settings.hadithLinkToggle;
+        document.getElementById('set-turLink').checked = !!settings.turathLinkToggle;
+        document.getElementById('set-font').value = settings.fontFamily || 'Arial';
+        document.getElementById('set-fSize').value = settings.fontSize || '14';
+        
+        if (settings.hadithApiKey) {
+          document.getElementById('set-apiKey').value = settings.hadithApiKey;
+        }
+      }).getSettings();
+    }
+
+    function saveSettings() {
+      const settings = {
+        quranColor: document.getElementById('set-qColor').value,
+        hadithColor: document.getElementById('set-hColor').value,
+        sharhColor: document.getElementById('set-sColor').value,
+        tafsirColor: document.getElementById('set-tColor').value,
+        quranSourceColor: document.getElementById('set-qSourceColor').value,
+        hadithSourceColor: document.getElementById('set-hSourceColor').value,
+        turathColor: document.getElementById('set-turColor').value,
+        turathSourceColor: document.getElementById('set-turSourceColor').value,
+        quranLinkToggle: document.getElementById('set-qLink').checked,
+        hadithLinkToggle: document.getElementById('set-hLink').checked,
+        turathLinkToggle: document.getElementById('set-turLink').checked,
+        fontFamily: document.getElementById('set-font').value,
+        fontSize: document.getElementById('set-fSize').value,
+        quranSourcePos: 'inline', 
+        hadithSourcePos: 'inline' 
+      };
+      
+      const apiKeyVal = document.getElementById('set-apiKey').value;
+      if(apiKeyVal) settings.hadithApiKey = apiKeyVal;
+
+      showLoader(true);
+      google.script.run.withSuccessHandler(() => {
+        showLoader(false);
+        alert('تم حفظ الإعدادات بنجاح');
+      }).saveSettings(settings);
+    }
+    let globalTurathBooks = [];
+let globalTurathAuthors = [];
+let selectedBookData = null;
+let turathRawPageText = ""; // النص كما جاء من الخادم قبل إزالة التشكيل، لإعادة تطبيقها دون طلب جديد
+
+// تحميل بيانات جيت هاب عند بدء التشغيل
+function initTurathData() {
+  const baseUrl = "https://ahmed-ye1.github.io/meshkah-data/";
+  
+  fetch(baseUrl + "meshkah_final_index.json")
+    .then(res => res.json())
+    .then(data => {
+      globalTurathBooks = data;
+      populateBooksDatalist(data);
+    })
+    .catch(err => console.error("فشل تحميل فهرس الكتب:", err));
+
+  fetch(baseUrl + "meshkah_authors_index.json")
+    .then(res => res.json())
+    .then(data => {
+      globalTurathAuthors = data;
+      populateAuthorsDatalist(data);
+    })
+    .catch(err => console.error("فشل تحميل فهرس المؤلفين:", err));
+}
+
+// استدعاء التحميل فور فتح الصفحة
+window.addEventListener('load', () => {
+  initTurathData();
+});
+
+function populateBooksDatalist(books) {
+  const list = document.getElementById('books-datalist');
+  list.innerHTML = '';
+  books.forEach(b => {
+    let opt = document.createElement('option');
+    opt.value = b.n; // n = name
+    opt.dataset.id = b.i; // i = id
+    list.appendChild(opt);
+  });
+}
+
+function populateAuthorsDatalist(authors) {
+  const list = document.getElementById('authors-datalist');
+  list.innerHTML = '';
+  authors.forEach(a => {
+    let opt = document.createElement('option');
+    opt.value = a.n;
+    opt.dataset.id = a.i;
+    list.appendChild(opt);
+  });
+}
+
+function switchTurathMode() {
+      const mode = document.getElementById('turath-search-mode').value;
+      const authorGroup = document.getElementById('author-search-group');
+      
+      if (mode === 'author') {
+        authorGroup.style.display = 'block';
+      } else {
+        authorGroup.style.display = 'none';
+        populateBooksDatalist(globalTurathBooks); // إعادة عرض كل الكتب
+      }
+    }
+
+function onAuthorSelected() {
+  const authorName = document.getElementById('author-input').value;
+  const author = globalTurathAuthors.find(a => a.n === authorName);
+  if (!author) return;
+
+  // تصفية الكتب الخاصة بهذا المؤلف فقط بناءً على مصفوفة المعرفات b
+  const authorBooks = globalTurathBooks.filter(b => author.b.includes(b.i));
+  populateBooksDatalist(authorBooks);
+  document.getElementById('book-input').value = '';
+}
+
+function onBookSelected() {
+  const bookName = document.getElementById('book-input').value;
+  selectedBookData = globalTurathBooks.find(b => b.n === bookName);
+  
+  if (selectedBookData) {
+    // ضبط الحد الأقصى للمجلدات والصفحات تلقائياً لتفادي أي تجاوز
+    document.getElementById('turath-vol').max = selectedBookData.v || 1;
+    document.getElementById('turath-pg').max = selectedBookData.p || 1000;
+  }
+}
+
+function previewTurathPage() {
+  if (!selectedBookData) {
+    return alert('الرجاء اختيار كتاب صحيح من القائمة.');
+  }
+  const pg = document.getElementById('turath-pg').value;
+  
+  showLoader(true);
+  google.script.run
+    .withSuccessHandler(res => {
+      showLoader(false);
+      if (res.error) {
+        alert(res.error);
+      } else {
+        let text = res.text.replace(/<[^>]+>/g, '').trim();
+        text = decodeHtmlEntities(text); // <<--- إضافة هذه الخطوة لفك ترميز الرموز مثل &quot;
+        text = text.replace(sallaRegex, 'ﷺ');
+        turathRawPageText = text; 
+        applyTurathTashkeelToggle();
+        document.getElementById('turath-preview-container').style.display = 'block';
+      }
+    })
+    .withFailureHandler(err => {
+      showLoader(false);
+      alert('خطأ: ' + err.message);
+    })
+    .fetchTurathPageAPI(selectedBookData.i, pg);
+}
+
+function decodeHtmlEntities(str) {
+  const txt = document.createElement("textarea");
+  txt.innerHTML = str;
+  return txt.value;
+}
+
+// يُعيد تطبيق إزالة التشكيل على النص الخام المحفوظ فور تبديل الخيار،
+// دون الحاجة لإعادة "معاينة الصفحة"
+function applyTurathTashkeelToggle() {
+  const checked = document.getElementById('turath-remove-tashkeel').checked;
+  document.getElementById('turath-preview-text').value =
+    checked ? removeTashkeel(turathRawPageText) : turathRawPageText;
+}
+
+function insertTurathCitation() {
+  const ta = document.getElementById('turath-preview-text');
+  // إدراج الجزء المحدد داخل الصندوق فقط؛ إن لم يُحدَّد شيء نُدرج الصندوق كاملاً
+  const hasSelection = ta.selectionEnd > ta.selectionStart;
+  const text = hasSelection ? ta.value.slice(ta.selectionStart, ta.selectionEnd) : ta.value;
+
+  const vol = document.getElementById('turath-vol').value;
+  const pg = document.getElementById('turath-pg').value;
+  if (!selectedBookData) return;
+
+  const sourceText = `${selectedBookData.n}، ج${vol} ص${pg}`;
+  insertData(text, sourceText, 'turath'); // بلا أقواس هنا؛ Code.gs يضيفها
+}
+
+// جلب النص الذي حدّده المستخدم في مستنده (توثيق نص محدد بالفعل)
+function loadSelectionForCite() {
+  showLoader(true);
+  google.script.run
+    .withSuccessHandler(res => {
+      showLoader(false);
+      if (res.error) return alert(res.error);
+      document.getElementById('cite-query-text').value = res.text;
+    })
+    .withFailureHandler(err => { showLoader(false); alert('خطأ: ' + err.message); })
+    .getDocSelectionText();
+}
+
+// البحث في تراث بالنص المحدد (أو المعدَّل يدويًا)
+function runCiteSearch() {
+  const q = document.getElementById('cite-query-text').value.trim();
+  if (!q) return alert('لا يوجد نص للبحث عنه.');
+
+  showLoader(true);
+  google.script.run
+    .withSuccessHandler(res => {
+      showLoader(false);
+      const box = document.getElementById('cite-results');
+      box.innerHTML = '';
+      if (res.error) { box.innerHTML = `<p style="color:#c0392b;">${res.error}</p>`; return; }
+
+      res.items.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'result-card';
+        card.style.marginBottom = '8px';
+        card.innerHTML = `
+          <div style="font-weight:bold; font-size:13px;">${item.bookName || 'كتاب غير معروف'}</div>
+          <div style="font-size:11px; color:#666;">${item.authorName || ''}${item.vol ? '، ج' + item.vol : ''}${item.page ? '، ص' + item.page : ''}</div>
+          <div style="font-size:12px; margin:6px 0;">${item.snippet}</div>
+          <button class="btn btn-secondary" style="width:auto; padding:4px 10px; font-size:12px; margin:0;">توثيق</button>
+        `;
+        card.querySelector('button').onclick = () => citeSelectedResult(item);
+        box.appendChild(card);
+      });
+
+      if (!res.items.length) box.innerHTML = '<p style="color:#888;">لا توجد نتائج.</p>';
+    })
+    .withFailureHandler(err => { showLoader(false); alert('خطأ: ' + err.message); })
+    .searchTurathText(q, 8);
+}
+
+// إدراج التوثيق مباشرة بعد النص المحدد في المستند (بدون إعادة كتابة النص)
+function citeSelectedResult(item) {
+      let parts = [item.bookName];
+      if (item.authorName) parts.push(item.authorName);
+      let loc = [];
+      if (item.vol) loc.push('ج' + item.vol);
+      if (item.page) loc.push('ص' + item.page);
+      if (loc.length) parts.push(loc.join(' '));
+      const sourceText = parts.join('، ');
+
+      // بناء رابط مباشر للكتاب والصفحة في تراث
+      let turathUrl = `https://app.turath.io/book/${item.bookId}`;
+      if (item.page) turathUrl += `?page=${item.page}`;
+
+      showLoader(true);
+      google.script.run
+        .withSuccessHandler(() => { showLoader(false); alert('تم إدراج التوثيق.'); })
+        .withFailureHandler(err => { showLoader(false); alert('خطأ: ' + err.message); })
+        .insertCitationAfterSelection(sourceText, turathUrl); // تمرير الرابط للخلفية
+    }
+
+  </script>
+</body>
+</html>
